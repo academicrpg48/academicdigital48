@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบวิชาการดิจิทัล</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { sans: ['Sarabun', 'sans-serif'] },
+    colors: {
+      primary: { DEFAULT: '#0C7C82', light: '#35B4B0', 50: '#E8F6F6', 100: '#CDEDEC' },
+      teal2: '#26A69A', lime2: '#AED581', amber2: '#FFCA28', coral: '#FF8A65',
+      rose2: '#EF5350', grape: '#4A2C6D', crimson: '#D32F2F', orange2: '#F57C00',
+      gold: '#FBC02D', sky2: '#0288D1'
+    }
+  }}
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  body{font-family:'Sarabun',sans-serif;}
+  .swal2-popup,.swal2-title,.swal2-html-container,.swal2-confirm,.swal2-cancel{font-family:'Sarabun',sans-serif!important;}
+  .swal2-popup{border-radius:1.5rem!important;}
+  .swal2-confirm,.swal2-cancel{border-radius:.875rem!important;padding:.6rem 1.4rem!important;font-weight:600!important;}
+
+  /* ===== Skeleton ===== */
+  .skeleton{background:linear-gradient(90deg,#e9eef0 25%,#f6f9f9 37%,#e9eef0 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite;}
+  @keyframes shimmer{0%{background-position:100% 50%}100%{background-position:0 50%}}
+
+  /* ===== Glass ===== */
+  .glass{background:rgba(255,255,255,.75);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border:1px solid rgba(255,255,255,.65);}
+
+  /* ===== Grid หน้าแรก ===== */
+  .app-grid{display:grid;gap:1rem;grid-template-columns:repeat(var(--cols-sm,2),minmax(0,1fr));}
+  @media(min-width:640px){.app-grid{gap:1.25rem;grid-template-columns:repeat(var(--cols-md,3),minmax(0,1fr));}}
+  @media(min-width:1024px){.app-grid{gap:1.5rem;grid-template-columns:repeat(var(--cols-lg,4),minmax(0,1fr));}}
+
+  /* ===== Card ===== */
+  .app-card,.preview-card{position:relative;display:block;aspect-ratio:16/10;border-radius:1.25rem;overflow:hidden;background:#e2e8f0;isolation:isolate;}
+  .app-card{box-shadow:0 10px 30px -12px rgba(15,23,42,.4);border:1px solid rgba(255,255,255,.55);transition:transform .4s cubic-bezier(.2,.8,.2,1),box-shadow .4s;}
+  .app-card:hover{transform:translateY(-6px);box-shadow:0 24px 44px -16px rgba(12,124,130,.6);}
+  .app-card:active{transform:scale(.97);}
+  .app-card::after{content:'';position:absolute;inset:0;z-index:3;background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.28) 50%,transparent 70%);transform:translateX(-100%);transition:transform .9s;pointer-events:none;}
+  .app-card:hover::after{transform:translateX(100%);}
+  .preview-card{box-shadow:0 8px 24px -12px rgba(15,23,42,.3);border:1px solid #e2e8f0;}
+
+  .card-media{position:absolute;inset:0;overflow:hidden;z-index:0;}
+  .card-img{position:absolute;inset:0;width:100%;height:100%;transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .6s ease;}
+  .card-img.main{object-fit:cover;}
+  .fit-contain .card-img.main{object-fit:contain;padding:5% 5% 18%;filter:drop-shadow(0 8px 18px rgba(0,0,0,.25));}
+  .card-img.blur{object-fit:cover;filter:blur(22px) saturate(1.4);transform:scale(1.3);}
+  .card-img.blur.loaded{opacity:.9;}
+  .app-card:hover .card-img.main{transform:scale(1.06);}
+
+  .card-label{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;align-items:flex-end;gap:.6rem;padding:2.4rem .95rem .8rem;color:#fff;
+    background:linear-gradient(to top,rgba(15,23,42,.78) 0%,rgba(15,23,42,.35) 55%,transparent 100%);}
+  .card-name{flex:1;min-width:0;font-weight:600;font-size:.95rem;line-height:1.35;letter-spacing:.01em;text-shadow:0 1px 10px rgba(0,0,0,.35);
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .card-name::before{content:'';display:block;width:1.4rem;height:3px;border-radius:99px;background:#AED581;margin-bottom:.4rem;transition:width .35s;}
+  .app-card:hover .card-name::before{width:2.6rem;}
+  .card-go{flex-shrink:0;width:2rem;height:2rem;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:.75rem;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    opacity:0;transform:translate(-6px,6px);transition:.35s;}
+  .app-card:hover .card-go{opacity:1;transform:none;}
+  @media (hover:none){.card-go{opacity:1;transform:none;}}
+  @media (max-width:639px){
+    .card-label{padding:1.8rem .65rem .55rem;gap:.4rem;}
+    .card-name{font-size:.8rem;}
+    .card-name::before{width:1rem;height:2px;margin-bottom:.3rem;}
+    .card-go{width:1.55rem;height:1.55rem;font-size:.6rem;}
+  }
+
+  .lazy-img{opacity:0;transition:opacity .6s ease;}
+  .lazy-img.loaded{opacity:1;}
+
+  /* ===== Animation ===== */
+  .fade-up{animation:fadeUp .55s ease both;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .modal-pop{animation:pop .25s ease both;}
+  @keyframes pop{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:none}}
+  .shake{animation:shake .4s;}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+
+  .spinner{width:2.75rem;height:2.75rem;border-radius:999px;border:4px solid #CDEDEC;border-top-color:#0C7C82;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ===== FAB ===== */
+  .fab::before{content:'';position:absolute;inset:0;border-radius:1rem;background:#35B4B0;opacity:.5;animation:ping 2.2s cubic-bezier(0,0,.2,1) infinite;z-index:-1;}
+  @keyframes ping{75%,100%{transform:scale(1.5);opacity:0}}
+
+  /* ===== PIN ===== */
+  .key{height:3.6rem;border-radius:1rem;background:#f1f5f9;font-size:1.35rem;font-weight:600;color:#1e293b;transition:.15s;}
+  .key:hover{background:#E0F2F1;color:#0C7C82;}
+  .key:active{transform:scale(.93);background:#CDEDEC;}
+  .pin-dot{width:1rem;height:1rem;border-radius:999px;border:2px solid #cbd5e1;transition:.2s;}
+  .pin-dot.filled{background:#0C7C82;border-color:#0C7C82;transform:scale(1.15);}
+
+  /* ===== Form ===== */
+  .input{width:100%;border:1px solid #e2e8f0;background:#f8fafc;border-radius:.875rem;padding:.7rem 1rem;font-size:.95rem;transition:.2s;outline:none;}
+  .input:focus{border-color:#35B4B0;background:#fff;box-shadow:0 0 0 4px rgba(53,180,176,.15);}
+  .label{display:flex;align-items:center;gap:.5rem;font-size:.875rem;font-weight:600;color:#334155;margin-bottom:.4rem;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.65rem 1.15rem;border-radius:.875rem;font-weight:600;font-size:.9rem;transition:.2s;}
+  .btn-primary{background:linear-gradient(135deg,#0C7C82,#35B4B0);color:#fff;box-shadow:0 8px 20px -8px rgba(12,124,130,.6);}
+  .btn-primary:hover{filter:brightness(1.06);transform:translateY(-1px);}
+  .btn-light{background:#f1f5f9;color:#334155;}
+  .btn-light:hover{background:#e2e8f0;}
+  .btn-danger-soft{background:#FDECEC;color:#D32F2F;}
+  .btn-danger-soft:hover{background:#FAD4D4;}
+  .icon-btn{width:2.25rem;height:2.25rem;border-radius:.7rem;display:inline-flex;align-items:center;justify-content:center;transition:.2s;}
+  .badge{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .65rem;border-radius:999px;font-size:.72rem;font-weight:600;white-space:nowrap;}
+  .card-panel{background:#fff;border:1px solid #eef2f6;border-radius:1.25rem;padding:1.25rem;box-shadow:0 1px 2px rgba(15,23,42,.04),0 8px 24px -12px rgba(15,23,42,.08);}
+  .dropzone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;text-align:center;padding:1.25rem;border:2px dashed #CDEDEC;border-radius:1rem;background:#F5FBFB;color:#0C7C82;cursor:pointer;transition:.2s;}
+  .dropzone:hover,.dropzone.drag{background:#E8F6F6;border-color:#35B4B0;}
+
+  .fit-opt{display:flex;gap:.75rem;align-items:flex-start;text-align:left;padding:.85rem;border-radius:1rem;border:1px solid #e2e8f0;background:#fff;transition:.2s;}
+  .fit-opt:hover{border-color:#35B4B0;}
+  .fit-opt.active{border-color:#0C7C82;background:#F0F9F9;box-shadow:0 0 0 4px rgba(53,180,176,.15);}
+  .fit-opt .fit-ic{width:2.2rem;height:2.2rem;flex-shrink:0;border-radius:.7rem;display:flex;align-items:center;justify-content:center;background:#f1f5f9;color:#64748b;}
+  .fit-opt.active .fit-ic{background:linear-gradient(135deg,#0C7C82,#35B4B0);color:#fff;}
+
+  /* ===== Sidebar ===== */
+  .nav-item{width:100%;display:flex;align-items:center;gap:.75rem;padding:.65rem .8rem;border-radius:.9rem;color:#475569;font-weight:500;transition:.2s;text-align:left;}
+  .nav-item:hover{background:#F0F9F9;color:#0C7C82;}
+  .nav-item.active{background:linear-gradient(135deg,#0C7C82,#35B4B0);color:#fff;box-shadow:0 10px 20px -10px rgba(12,124,130,.7);}
+  .nav-icon{width:2.1rem;height:2.1rem;display:flex;align-items:center;justify-content:center;border-radius:.65rem;background:rgba(12,124,130,.08);}
+  .nav-item.active .nav-icon{background:rgba(255,255,255,.2);}
+  .col-btn{width:2.75rem;height:2.75rem;border-radius:.85rem;border:1px solid #e2e8f0;font-weight:700;color:#475569;background:#fff;transition:.2s;}
+  .col-btn:hover{border-color:#35B4B0;color:#0C7C82;}
+  .col-btn.active{background:linear-gradient(135deg,#0C7C82,#35B4B0);color:#fff;border-color:transparent;box-shadow:0 8px 16px -8px rgba(12,124,130,.7);}
+
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px;}
+
+  /* ===== In-app viewer + App feel ===== */
+  html,body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}
+  button,a,.app-card{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+  #appViewer{position:fixed;inset:0;z-index:300;display:none;flex-direction:column;background:#fff;}
+  #appViewer.open{display:flex;animation:avIn .25s ease both;}
+  @keyframes avIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+  .av-bar{flex-shrink:0;height:52px;display:flex;align-items:center;gap:.5rem;padding:0 .6rem;color:#fff;background:linear-gradient(135deg,#0C7C82,#35B4B0);box-shadow:0 2px 10px rgba(0,0,0,.18);}
+  .av-btn{width:2.5rem;height:2.5rem;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.2);color:#fff;font-size:1rem;transition:.15s;}
+  .av-btn:active{transform:scale(.9);background:rgba(255,255,255,.35);}
+  #avTitle{flex:1;min-width:0;text-align:center;font-weight:700;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .av-body{position:relative;flex:1;min-height:0;background:#F4FBF5;}
+  #avFrame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;}
+  #avLoading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+</style>
+</head>
+<body class="font-sans text-slate-700 antialiased bg-slate-100">
+
+<!-- ============ LOADING OVERLAY ============ -->
+<div id="loadingOverlay" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/30 backdrop-blur-[2px]">
+  <div class="bg-white rounded-2xl shadow-2xl px-8 py-6 flex flex-col items-center gap-3 modal-pop">
+    <div class="spinner"></div>
+    <p id="loadingText" class="text-sm font-medium text-slate-600">กำลังโหลด...</p>
+  </div>
+</div>
+
+<!-- ============ HOME VIEW ============ -->
+<div id="homeView" class="relative min-h-screen flex flex-col">
+  <!-- Background -->
+  <div class="fixed inset-0 z-0 pointer-events-none">
+    <div class="absolute inset-0 bg-gradient-to-br from-primary via-primary-light to-teal2"></div>
+    <div class="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-lime2/40 blur-3xl"></div>
+    <div class="absolute bottom-0 right-0 w-[28rem] h-[28rem] rounded-full bg-amber2/30 blur-3xl"></div>
+    <div id="bgImage" class="absolute inset-0 bg-cover bg-center opacity-0 transition-opacity duration-1000"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-slate-900/10 via-transparent to-slate-900/40"></div>
+  </div>
+
+  <div class="relative z-10 flex flex-col min-h-screen">
+    <!-- Header -->
+    <header class="pt-6 sm:pt-10 px-4">
+      <div class="max-w-3xl mx-auto glass rounded-3xl shadow-xl px-6 py-6 sm:py-8 text-center fade-up">
+        <div id="homeLogo" class="relative mx-auto w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-white shadow-md ring-4 ring-white/70">
+          <div class="skeleton absolute inset-0"></div>
+        </div>
+        <h1 class="mt-4 text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-primary to-primary-light bg-clip-text text-transparent">
+          ระบบวิชาการดิจิทัล
+        </h1>
+        <h2 id="homeSchool" class="mt-1 text-lg sm:text-xl font-bold text-slate-800">
+          <span class="skeleton inline-block h-6 w-56 rounded-lg align-middle"></span>
+        </h2>
+        <div class="mt-3">
+          <span id="homeAffiliation" class="badge bg-primary-50 text-primary text-xs sm:text-sm">
+            <span class="skeleton inline-block h-4 w-40 rounded"></span>
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Cards -->
+    <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <div id="appGrid" class="app-grid"></div>
+      <div id="emptyState" class="hidden glass rounded-3xl p-10 text-center">
+        <i class="fa-solid fa-layer-group text-4xl text-primary"></i>
+        <p class="mt-3 font-semibold text-slate-700">ยังไม่มีระบบในหน้าแรก</p>
+        <p class="text-sm text-slate-500">ผู้ดูแลระบบสามารถเพิ่ม card ได้ที่เมนูจัดการ card</p>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="px-4 pb-6">
+      <div class="max-w-7xl mx-auto glass rounded-2xl px-5 py-3 text-center text-sm text-slate-600">
+        <i class="fa-solid fa-graduation-cap text-primary"></i>
+        <span class="font-semibold text-primary">ระบบวิชาการดิจิทัล</span>
+        <span class="mx-1 text-slate-300">|</span>
+        <span id="footerSchool">-</span>
+        <span class="mx-1 text-slate-300">|</span>
+        <span>© <span id="footerYear"></span></span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- FAB -->
+  <button onclick="openPin()" title="ผู้ดูแลระบบ"
+    class="fab fixed bottom-5 right-5 z-40 w-14 h-14 rounded-2xl text-white shadow-xl shadow-primary/40 bg-gradient-to-br from-primary to-primary-light hover:scale-110 transition flex items-center justify-center">
+    <i class="fa-solid fa-user-shield text-xl"></i>
+  </button>
+</div>
+
+<!-- ============ PIN MODAL ============ -->
+<div id="pinModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+  <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="closeModal('pinModal')"></div>
+  <div class="relative w-full max-w-xs bg-white rounded-3xl shadow-2xl p-6 modal-pop">
+    <button onclick="closeModal('pinModal')" class="absolute top-4 right-4 icon-btn bg-slate-100 text-slate-500 hover:bg-slate-200">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="text-center">
+      <div class="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary-light text-white flex items-center justify-center text-2xl shadow-lg shadow-primary/30">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h3 class="mt-3 text-lg font-bold text-slate-800">เข้าสู่ระบบผู้ดูแล</h3>
+      <p class="text-sm text-slate-500">กรอก PIN 4 หลัก</p>
+      <div id="pinDots" class="flex justify-center gap-4 mt-5"></div>
+      <p id="pinMsg" class="h-5 mt-3 text-sm font-medium text-rose2"></p>
+    </div>
+    <div id="keypad" class="grid grid-cols-3 gap-3 mt-3"></div>
+  </div>
+</div>
+
+<!-- ============ ADMIN VIEW ============ -->
+<div id="adminView" class="hidden min-h-screen bg-slate-50">
+  <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 hidden lg:hidden" onclick="toggleSidebar(false)"></div>
+
+  <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-200 flex flex-col -translate-x-full lg:translate-x-0 transition-transform duration-300">
+    <div class="p-5 flex items-center gap-3 border-b border-slate-100">
+      <div id="sbLogo" class="w-11 h-11 shrink-0 rounded-xl bg-primary-50 text-primary flex items-center justify-center overflow-hidden">
+        <i class="fa-solid fa-graduation-cap"></i>
+      </div>
+      <div class="min-w-0">
+        <p class="font-bold text-slate-800 leading-tight">ระบบวิชาการดิจิทัล</p>
+        <p id="sbSchool" class="text-xs text-slate-500 truncate">-</p>
+      </div>
+      <button class="lg:hidden ml-auto icon-btn bg-slate-100 text-slate-500" onclick="toggleSidebar(false)">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <nav class="flex-1 p-4 space-y-1.5 overflow-y-auto">
+      <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">เมนูผู้ดูแลระบบ</p>
+      <button data-page="dashboard" onclick="navigate('dashboard')" class="nav-item">
+        <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span> แดชบอร์ด
+      </button>
+      <button data-page="settings" onclick="navigate('settings')" class="nav-item">
+        <span class="nav-icon"><i class="fa-solid fa-sliders"></i></span> ตั้งค่าระบบ
+      </button>
+      <button data-page="cards" onclick="navigate('cards')" class="nav-item">
+        <span class="nav-icon"><i class="fa-solid fa-table-cells-large"></i></span> จัดการ card หน้าแรก
+        <span id="navCardCount" class="ml-auto badge bg-amber2/20 text-orange2">0</span>
+      </button>
+    </nav>
+
+    <div class="p-4 border-t border-slate-100 space-y-2">
+      <button onclick="showHome()" class="nav-item"><span class="nav-icon"><i class="fa-solid fa-house"></i></span> ดูหน้าแรก</button>
+      <button onclick="logout()" class="nav-item !text-crimson hover:!bg-rose-50">
+        <span class="nav-icon !bg-rose-50"><i class="fa-solid fa-right-from-bracket"></i></span> ออกจากระบบ
+      </button>
+    </div>
+  </aside>
+
+  <div class="lg:pl-72">
+    <header class="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-slate-200">
+      <div class="flex items-center gap-3 px-4 sm:px-6 lg:px-8 h-16">
+        <button onclick="toggleSidebar(true)" class="lg:hidden icon-btn bg-primary-50 text-primary">
+          <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div class="min-w-0">
+          <h2 id="pageTitle" class="font-bold text-slate-800 text-lg leading-tight">แดชบอร์ด</h2>
+          <p class="text-xs text-slate-500 hidden sm:block">ระบบวิชาการดิจิทัล · ผู้ดูแลระบบ</p>
+        </div>
+        <div class="ml-auto flex items-center gap-2">
+          <span class="badge bg-emerald-50 text-emerald-600"><i class="fa-solid fa-circle text-[6px]"></i> Admin</span>
+          <button onclick="logout()" class="icon-btn bg-rose-50 text-crimson hover:bg-rose-100" title="ออกจากระบบ">
+            <i class="fa-solid fa-power-off"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+
+      <!-- ===== DASHBOARD ===== -->
+      <section id="page-dashboard" class="space-y-6">
+        <div class="relative overflow-hidden rounded-3xl p-6 sm:p-8 text-white bg-gradient-to-br from-primary to-primary-light fade-up">
+          <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-white/10"></div>
+          <div class="absolute right-16 -bottom-16 w-40 h-40 rounded-full bg-lime2/30"></div>
+          <span class="badge bg-white/20 text-white"><i class="fa-solid fa-wand-magic-sparkles"></i> ยินดีต้อนรับ</span>
+          <h3 class="mt-3 text-xl sm:text-2xl font-bold">ระบบวิชาการดิจิทัล</h3>
+          <p id="dashSchool" class="text-white/85">-</p>
+        </div>
+        <div id="statGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
+        <div class="grid lg:grid-cols-3 gap-6">
+          <div class="card-panel lg:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="font-bold text-slate-800"><i class="fa-solid fa-chart-column text-primary mr-1"></i> สถิติการคลิก card</h4>
+              <span class="badge bg-sky2/10 text-sky2">Real-time</span>
+            </div>
+            <div class="relative h-72"><canvas id="clickChart"></canvas></div>
+          </div>
+          <div class="card-panel">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="font-bold text-slate-800"><i class="fa-solid fa-image text-orange2 mr-1"></i> card ที่มีรูปภาพ</h4>
+              <span class="badge bg-orange2/10 text-orange2">สัดส่วน</span>
+            </div>
+            <div class="relative h-72"><canvas id="imgChart"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SETTINGS ===== -->
+      <section id="page-settings" class="hidden space-y-6">
+        <div class="grid lg:grid-cols-2 gap-6">
+          <div class="card-panel space-y-5">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary flex items-center justify-center"><i class="fa-solid fa-school"></i></div>
+              <div><h4 class="font-bold text-slate-800">ข้อมูลทั่วไป</h4><p class="text-xs text-slate-500">ชื่อโรงเรียน สังกัด และรูปแบบการแสดงผล</p></div>
+            </div>
+            <div><label class="label">ชื่อโรงเรียน <span class="badge bg-rose-50 text-rose2">จำเป็น</span></label><input id="setSchool" class="input" placeholder="เช่น โรงเรียนตัวอย่างวิทยา"></div>
+            <div><label class="label">ชื่อสังกัด</label><input id="setAff" class="input" placeholder="เช่น สพม.กรุงเทพมหานคร เขต 1"></div>
+            <div>
+              <label class="label">จำนวนคอลัมน์ card หน้าแรก <span class="badge bg-primary-50 text-primary">Desktop</span></label>
+              <div id="colButtons" class="flex flex-wrap gap-2"></div>
+              <p class="text-xs text-slate-400 mt-2"><i class="fa-solid fa-mobile-screen"></i> บนมือถือแสดงสูงสุด 2 คอลัมน์ และแท็บเล็ตแสดงสูงสุด 3 คอลัมน์โดยอัตโนมัติ</p>
+              <div class="mt-3 p-3 rounded-2xl bg-slate-50 border border-slate-100"><div id="colPreview" class="grid gap-1.5"></div></div>
+            </div>
+            <div>
+              <label class="label">รูปแบบการแสดงรูปภาพบน card <span class="badge bg-sky2/10 text-sky2">หน้าแรก</span></label>
+              <div id="fitButtons" class="grid sm:grid-cols-2 gap-3"></div>
+            </div>
+          </div>
+
+          <div class="card-panel space-y-5">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-orange2/10 text-orange2 flex items-center justify-center"><i class="fa-solid fa-images"></i></div>
+              <div><h4 class="font-bold text-slate-800">รูปภาพ</h4><p class="text-xs text-slate-500">โลโก้โรงเรียนและภาพพื้นหลังหน้าแรก</p></div>
+            </div>
+            <div>
+              <label class="label">โลโก้โรงเรียน <span id="logoBadge" class="badge"></span></label>
+              <div class="flex gap-4 items-start">
+                <div id="logoPreview" class="w-32 h-32 shrink-0 rounded-2xl border border-slate-200 bg-white overflow-hidden"></div>
+                <div class="flex-1 space-y-2">
+                  <label data-drop="logo" class="dropzone">
+                    <input type="file" accept="image/*" class="hidden" onchange="onPickImage(this,'logo')">
+                    <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+                    <span class="text-sm font-semibold">เลือกหรือลากรูปมาวาง</span>
+                    <span class="text-[11px] text-slate-400">PNG พื้นใส / สี่เหลี่ยมจัตุรัส</span>
+                  </label>
+                  <button type="button" onclick="removeImage('logo')" class="btn btn-danger-soft w-full !py-2"><i class="fa-regular fa-trash-can"></i> ลบรูป</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label class="label">ภาพพื้นหลังหน้าแรก <span id="bgBadge" class="badge"></span></label>
+              <div id="bgPreview" class="w-full aspect-video rounded-2xl border border-slate-200 bg-white overflow-hidden"></div>
+              <div class="grid grid-cols-3 gap-2 mt-2">
+                <label data-drop="bg" class="dropzone col-span-2 !flex-row !py-3">
+                  <input type="file" accept="image/*" class="hidden" onchange="onPickImage(this,'bg')">
+                  <i class="fa-solid fa-cloud-arrow-up"></i><span class="text-sm font-semibold">เลือกภาพพื้นหลัง</span>
+                </label>
+                <button type="button" onclick="removeImage('bg')" class="btn btn-danger-soft"><i class="fa-regular fa-trash-can"></i> ลบ</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button onclick="saveSettings()" class="btn btn-primary !px-6"><i class="fa-solid fa-floppy-disk"></i> บันทึกการตั้งค่า</button>
+        </div>
+
+        <div class="card-panel">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl bg-grape/10 text-grape flex items-center justify-center"><i class="fa-solid fa-key"></i></div>
+            <div><h4 class="font-bold text-slate-800">เปลี่ยน PIN ผู้ดูแลระบบ</h4><p class="text-xs text-slate-500">PIN ต้องเป็นตัวเลข 4 หลัก</p></div>
+            <span class="ml-auto badge bg-grape/10 text-grape"><i class="fa-solid fa-shield-halved"></i> Security</span>
+          </div>
+          <div class="grid sm:grid-cols-3 gap-4">
+            <div><label class="label">PIN เดิม</label><input id="pinOld" type="password" inputmode="numeric" maxlength="4" class="input tracking-[.5em] text-center" placeholder="••••"></div>
+            <div><label class="label">PIN ใหม่</label><input id="pinNew" type="password" inputmode="numeric" maxlength="4" class="input tracking-[.5em] text-center" placeholder="••••"></div>
+            <div><label class="label">ยืนยัน PIN ใหม่</label><input id="pinConfirm" type="password" inputmode="numeric" maxlength="4" class="input tracking-[.5em] text-center" placeholder="••••"></div>
+          </div>
+          <div class="flex justify-end mt-4">
+            <button onclick="changePin()" class="btn text-white bg-grape hover:opacity-90"><i class="fa-solid fa-rotate"></i> อัปเดต PIN</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== CARDS ===== -->
+      <section id="page-cards" class="hidden space-y-5">
+        <div class="card-panel">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary flex items-center justify-center"><i class="fa-solid fa-table-cells-large"></i></div>
+              <div><h4 class="font-bold text-slate-800">รายการ card หน้าแรก</h4><p class="text-xs text-slate-500">เรียงตามลำดับการแสดงผล</p></div>
+            </div>
+            <div class="sm:ml-auto flex gap-2">
+              <div class="relative flex-1 sm:w-64">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input id="cardSearch" oninput="renderCardsTable()" class="input !pl-10 !py-2.5" placeholder="ค้นหาชื่อระบบ...">
+              </div>
+              <button onclick="openCardModal()" class="btn btn-primary whitespace-nowrap"><i class="fa-solid fa-plus"></i><span class="hidden sm:inline">เพิ่ม card</span></button>
+            </div>
+          </div>
+          <div class="overflow-x-auto -mx-5 px-5">
+            <table class="w-full min-w-[820px] text-sm">
+              <thead>
+                <tr class="text-left text-xs uppercase tracking-wide text-slate-500 border-b border-slate-100">
+                  <th class="py-3 pr-3 font-semibold">ลำดับ</th>
+                  <th class="py-3 pr-3 font-semibold">รูปภาพ</th>
+                  <th class="py-3 pr-3 font-semibold">ชื่อระบบ</th>
+                  <th class="py-3 pr-3 font-semibold">ลิงก์ URL</th>
+                  <th class="py-3 pr-3 font-semibold text-center">คลิก</th>
+                  <th class="py-3 pr-3 font-semibold">สถานะรูป</th>
+                  <th class="py-3 font-semibold text-right">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="cardTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ============ CARD MODAL ============ -->
+<div id="cardModal" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center sm:p-4">
+  <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="closeModal('cardModal')"></div>
+  <form onsubmit="saveCard(event)" class="relative w-full sm:max-w-2xl bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[92vh] flex flex-col modal-pop">
+    <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-light text-white flex items-center justify-center"><i id="cardModalIcon" class="fa-solid fa-plus"></i></div>
+      <h3 id="cardModalTitle" class="font-bold text-slate-800 text-lg">เพิ่ม card ใหม่</h3>
+      <button type="button" onclick="closeModal('cardModal')" class="ml-auto icon-btn bg-slate-100 text-slate-500 hover:bg-slate-200"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="p-6 overflow-y-auto space-y-5">
+      <input type="hidden" id="cardId">
+      <div class="grid grid-cols-4 gap-4">
+        <div class="col-span-1"><label class="label">ลำดับ</label><input id="cardOrder" type="number" min="1" class="input text-center" required></div>
+        <div class="col-span-3"><label class="label">ชื่อระบบ <span class="badge bg-rose-50 text-rose2">จำเป็น</span></label><input id="cardName" class="input" oninput="renderCardPreview()" placeholder="เช่น ระบบบันทึกคะแนน" required></div>
+      </div>
+      <div>
+        <label class="label">ลิงก์ URL <span class="badge bg-rose-50 text-rose2">จำเป็น</span></label>
+        <div class="relative">
+          <i class="fa-solid fa-link absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input id="cardUrl" type="url" class="input !pl-10" placeholder="https://..." required>
+        </div>
+      </div>
+      <div>
+        <label class="label">รูปภาพ card (preview) <span id="cardImgBadge" class="badge"></span></label>
+        <div class="grid sm:grid-cols-2 gap-4 items-start">
+          <div id="cardPreview" class="preview-card"></div>
+          <div class="space-y-2">
+            <label data-drop="card" class="dropzone">
+              <input type="file" accept="image/*" class="hidden" onchange="onPickImage(this,'card')">
+              <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+              <span class="text-sm font-semibold">เลือกหรือลากรูปมาวาง</span>
+              <span class="text-[11px] text-slate-400">แนะนำอัตราส่วน 16:10 (เช่น 800×500)</span>
+            </label>
+            <button type="button" onclick="removeImage('card')" class="btn btn-danger-soft w-full !py-2"><i class="fa-regular fa-trash-can"></i> ลบรูปภาพ</button>
+            <p class="text-[11px] text-slate-400"><i class="fa-solid fa-circle-info"></i> ถ้าไม่มีรูปภาพ ระบบจะแสดงพื้นไล่สีพร้อมชื่อระบบแทน</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-2">
+      <button type="button" class="btn btn-light" onclick="closeModal('cardModal')">ยกเลิก</button>
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
+    </div>
+  </form>
+</div>
+
+<script>
+/* ================= CORE ================= */
+const PALETTE = ['#0C7C82','#35B4B0','#26A69A','#AED581','#FFCA28','#FF8A65','#EF5350','#4A2C6D','#D32F2F','#F57C00','#FBC02D','#0288D1'];
+const GRADIENTS = [['#0C7C82','#35B4B0'],['#26A69A','#AED581'],['#0288D1','#35B4B0'],['#4A2C6D','#0C7C82'],['#F57C00','#FF8A65'],['#D32F2F','#EF5350'],['#FBC02D','#F57C00']];
+const PAGE_TITLES = { dashboard: 'แดชบอร์ด', settings: 'ตั้งค่าระบบ', cards: 'จัดการ card หน้าแรก' };
+const BADGE = {
+  current: ['ใช้งานอยู่', 'bg-emerald-50 text-emerald-600'],
+  new:     ['รูปใหม่ · ยังไม่บันทึก', 'bg-amber-50 text-amber-600'],
+  none:    ['ยังไม่มีรูป', 'bg-slate-100 text-slate-500'],
+  remove:  ['จะลบเมื่อบันทึก', 'bg-rose-50 text-rose-600']
+};
+const FIT_OPTIONS = [
+  { v: 'cover',   t: 'เต็ม card',    d: 'รูปเต็มพื้นที่ อาจตัดขอบบางส่วน',          i: 'fa-expand' },
+  { v: 'contain', t: 'แสดงทั้งภาพ', d: 'เห็นรูปครบ พร้อมพื้นหลังเบลอจากรูปเดียวกัน', i: 'fa-compress' }
+];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const api = (fn, ...args) => new Promise((resolve, reject) =>
+  google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[fn](...args));
+
+const state = {
+  token: sessionStorage.getItem('da_token') || '',
+  settings: {}, cards: [], pin: '', pinBusy: false, colSel: 4, fitSel: 'cover',
+  pending: { logo: null, bg: null, card: null },
+  remove: { logo: false, bg: false },
+  removeCardImage: false, editingImage: '', charts: {}
+};
+
+const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2200, timerProgressBar: true });
+
+function showLoading(t = 'กำลังดำเนินการ...') { $('loadingText').textContent = t; $('loadingOverlay').classList.remove('hidden'); $('loadingOverlay').classList.add('flex'); }
+function hideLoading() { $('loadingOverlay').classList.add('hidden'); $('loadingOverlay').classList.remove('flex'); }
+function openModal(id) { const m = $(id); m.classList.remove('hidden'); m.classList.add('flex'); document.body.style.overflow = 'hidden'; }
+function closeModal(id) { const m = $(id); m.classList.add('hidden'); m.classList.remove('flex'); document.body.style.overflow = ''; }
+function setBadge(el, st) { el.className = 'badge ' + BADGE[st][1]; el.textContent = BADGE[st][0]; }
+function warn(msg) { Swal.fire({ icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: msg, confirmButtonColor: '#0C7C82', confirmButtonText: 'ตกลง' }); }
+
+function handleError(err) {
+  hideLoading();
+  const msg = ((err && err.message) || String(err)).replace(/^(Error|Exception):\s*/, '');
+  if (msg.includes('SESSION_EXPIRED')) {
+    clearSession();
+    Swal.fire({ icon: 'warning', title: 'หมดเวลาการใช้งาน', text: 'กรุณาเข้าสู่ระบบใหม่อีกครั้ง', confirmButtonColor: '#0C7C82', confirmButtonText: 'ตกลง' }).then(showHome);
+    return;
+  }
+  Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: msg, confirmButtonColor: '#0C7C82', confirmButtonText: 'ตกลง' });
+}
+function clearSession() { state.token = ''; sessionStorage.removeItem('da_token'); }
+
+/* ================= INIT ================= */
+document.addEventListener('DOMContentLoaded', async () => {
+  $('footerYear').textContent = new Date().getFullYear() + 543;
+  if (window.Chart) { Chart.defaults.font.family = 'Sarabun'; Chart.defaults.color = '#64748b'; }
+  renderKeypad(); renderPinDots(); renderGridSkeleton(); initDropzones();
+  try {
+    const d = await api('getPublicData');
+    state.settings = d.settings; state.cards = d.cards;
+    renderHome();
+  } catch (e) { handleError(e); }
+});
+
+/* ================= HOME ================= */
+function applyColumns(el, n) {
+  n = Math.max(1, Math.min(8, Number(n) || 4));
+  el.style.setProperty('--cols-lg', n);
+  el.style.setProperty('--cols-md', Math.min(n, 3));
+  el.style.setProperty('--cols-sm', Math.min(n, 2));
+}
+function renderGridSkeleton() {
+  const g = $('appGrid'); applyColumns(g, 4);
+  g.innerHTML = Array.from({ length: 8 }).map(() => `
+    <div class="app-card">
+      <div class="skeleton absolute inset-0"></div>
+      <div class="absolute left-3 right-3 bottom-3 space-y-1.5">
+        <div class="h-1 w-6 rounded bg-white/80"></div>
+        <div class="h-3 w-2/3 rounded bg-white/80"></div>
+      </div>
+    </div>`).join('');
+}
+function renderHome() {
+  const s = state.settings;
+  $('homeSchool').textContent = s.schoolName || '-';
+  $('homeAffiliation').innerHTML = `<i class="fa-solid fa-building-columns"></i> ${esc(s.affiliation || '-')}`;
+  $('footerSchool').textContent = s.schoolName || '-';
+  document.title = 'ระบบวิชาการดิจิทัล | ' + (s.schoolName || '');
+
+  $('homeLogo').innerHTML = s.logoUrl
+    ? `<div class="skeleton absolute inset-0"></div><img src="${esc(s.logoUrl)}" alt="logo" class="lazy-img relative w-full h-full object-contain p-1.5" onload="imgLoaded(this)" onerror="logoError(this)">`
+    : defaultLogo();
+
+  setBackground(s.bgUrl);
+  renderGrid();
+}
+function defaultLogo() {
+  return `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary to-primary-light text-white text-3xl"><i class="fa-solid fa-graduation-cap"></i></div>`;
+}
+function logoError(img) { img.parentElement.innerHTML = defaultLogo(); }
+function setBackground(url) {
+  const el = $('bgImage');
+  if (!url) { el.style.opacity = 0; el.style.backgroundImage = ''; return; }
+  const img = new Image();
+  img.onload = () => { el.style.backgroundImage = `url("${url}")`; el.style.opacity = 1; };
+  img.src = url;
+}
+
+/* ---------- Card rendering ---------- */
+function fitOf() { return state.settings.imageFit === 'contain' ? 'contain' : 'cover'; }
+
+function cardFallbackMedia(i) {
+  const [a, b] = GRADIENTS[i % GRADIENTS.length];
+  return `<div class="absolute inset-0" style="background:linear-gradient(135deg,${a},${b})">
+      <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10"></div>
+      <div class="absolute -left-6 -bottom-10 w-28 h-28 rounded-full bg-white/10"></div>
+      <div class="absolute inset-0 flex items-center justify-center pb-[18%]">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/20 ring-1 ring-white/30 backdrop-blur flex items-center justify-center text-white text-xl sm:text-2xl shadow-lg">
+          <i class="fa-solid fa-layer-group"></i>
+        </div>
+      </div>
+    </div>`;
+}
+
+/** สร้างเนื้อหาภายใน card (รูปภาพ + ชื่อระบบ) */
+function cardInner(name, imageUrl, i, lazy, fit) {
+  const src = u => lazy ? `data-src="${esc(u)}"` : `src="${esc(u)}"`;
+  const media = imageUrl
+    ? `<div class="skeleton absolute inset-0"></div>
+       ${fit === 'contain' ? `<img ${src(imageUrl)} alt="" aria-hidden="true" class="card-img blur lazy-img" onload="imgLoaded(this)">` : ''}
+       <img ${src(imageUrl)} alt="${esc(name)}" data-idx="${i}" class="card-img main lazy-img" onload="imgLoaded(this)" onerror="cardImgError(this)">`
+    : cardFallbackMedia(i);
+  return `<div class="card-media">${media}</div>
+    <div class="card-label">
+      <span class="card-name">${esc(name)}</span>
+      <span class="card-go"><i class="fa-solid fa-arrow-right -rotate-45"></i></span>
+    </div>`;
+}
+
+let lazyObserver;
+function renderGrid() {
+  const g = $('appGrid');
+  applyColumns(g, state.settings.columns);
+  const cards = state.cards, fit = fitOf();
+  $('emptyState').classList.toggle('hidden', cards.length > 0);
+  g.classList.toggle('hidden', cards.length === 0);
+
+  g.innerHTML = cards.map((c, i) => `
+    <a href="${esc(c.url)}" target="_top" rel="noopener noreferrer" onclick="return openCard(event,'${esc(c.id)}',this.href,this.title)"
+       class="app-card fit-${fit} fade-up" style="animation-delay:${i * 45}ms" title="${esc(c.name)}" aria-label="${esc(c.name)}">
+      ${cardInner(c.name, c.imageUrl, i, true, fit)}
+    </a>`).join('');
+
+  if (lazyObserver) lazyObserver.disconnect();
+  lazyObserver = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (en.isIntersecting) { en.target.src = en.target.dataset.src; lazyObserver.unobserve(en.target); }
+    });
+  }, { rootMargin: '150px' });
+  g.querySelectorAll('img[data-src]').forEach(img => lazyObserver.observe(img));
+}
+function imgLoaded(img) {
+  img.classList.add('loaded');
+  if (img.classList.contains('blur')) return;
+  const sk = img.parentElement && img.parentElement.querySelector(':scope > .skeleton');
+  if (sk) setTimeout(() => sk.remove(), 400);
+}
+function cardImgError(img) {
+  const media = img.closest('.card-media');
+  if (media) media.innerHTML = cardFallbackMedia(Number(img.dataset.idx) || 0);
+}
+function trackClick(id) { try { google.script.run.recordClick(id); } catch (e) {} }
+/* เปิดลิงก์ในตัวดูภายในแอป (มีปุ่มย้อนกลับมุมซ้ายบน) · ไม่เด้งออกเบราว์เซอร์ */
+let viewerPushed = false;
+function openCard(ev, id, url, name) {
+  ev.preventDefault();
+  trackClick(id);
+  openViewer(url, name);
+  return false;
+}
+function openViewer(url, name) {
+  const v = document.getElementById('appViewer'), f = document.getElementById('avFrame');
+  document.getElementById('avTitle').textContent = name || '';
+  document.getElementById('avLoading').style.display = 'flex';
+  f.onload = () => { document.getElementById('avLoading').style.display = 'none'; };
+  f.src = url;
+  v.dataset.url = url;
+  v.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  try { history.pushState({ viewer: 1 }, ''); viewerPushed = true; } catch (e) { viewerPushed = false; }
+}
+function closeViewer(fromPop) {
+  const v = document.getElementById('appViewer');
+  if (!v.classList.contains('open')) return;
+  v.classList.remove('open');
+  document.getElementById('avFrame').src = 'about:blank';
+  document.body.style.overflow = '';
+  if (viewerPushed && !fromPop) { viewerPushed = false; try { history.back(); } catch (e) {} }
+  viewerPushed = false;
+}
+function viewerExternal() { window.open(document.getElementById('appViewer').dataset.url, '_blank'); }
+window.addEventListener('popstate', () => closeViewer(true));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeViewer(); });
+
+/* ================= PIN ================= */
+function renderKeypad() {
+  const keys = ['1','2','3','4','5','6','7','8','9','clr','0','del'];
+  $('keypad').innerHTML = keys.map(k => {
+    if (k === 'clr') return `<button type="button" class="key !text-sm !text-slate-500" onclick="pressKey('clr')">ล้าง</button>`;
+    if (k === 'del') return `<button type="button" class="key !text-slate-500" onclick="pressKey('del')"><i class="fa-solid fa-delete-left"></i></button>`;
+    return `<button type="button" class="key" onclick="pressKey('${k}')">${k}</button>`;
+  }).join('');
+}
+function renderPinDots() {
+  $('pinDots').innerHTML = [0,1,2,3].map(i => `<span class="pin-dot ${i < state.pin.length ? 'filled' : ''}"></span>`).join('');
+}
+function openPin() {
+  if (state.token) { enterAdmin(); return; }
+  state.pin = ''; renderPinDots(); $('pinMsg').textContent = '';
+  openModal('pinModal');
+}
+function pressKey(k) {
+  if (state.pinBusy) return;
+  if (k === 'del') state.pin = state.pin.slice(0, -1);
+  else if (k === 'clr') state.pin = '';
+  else if (state.pin.length < 4) state.pin += k;
+  $('pinMsg').textContent = '';
+  renderPinDots();
+  if (state.pin.length === 4) submitPin();
+}
+async function submitPin() {
+  state.pinBusy = true;
+  showLoading('กำลังตรวจสอบ PIN...');
+  try {
+    const r = await api('login', state.pin);
+    hideLoading();
+    if (r.ok) {
+      state.token = r.token; sessionStorage.setItem('da_token', r.token);
+      closeModal('pinModal');
+      Toast.fire({ icon: 'success', title: 'เข้าสู่ระบบสำเร็จ' });
+      enterAdmin();
+    } else {
+      $('pinMsg').textContent = r.message + (r.remain > 0 ? ` (เหลือ ${r.remain} ครั้ง)` : '');
+      const d = $('pinDots'); d.classList.add('shake'); setTimeout(() => d.classList.remove('shake'), 450);
+      state.pin = ''; renderPinDots();
+    }
+  } catch (e) { handleError(e); }
+  finally { state.pinBusy = false; }
+}
+document.addEventListener('keydown', e => {
+  if ($('pinModal').classList.contains('hidden')) return;
+  if (/^\d$/.test(e.key)) pressKey(e.key);
+  else if (e.key === 'Backspace') pressKey('del');
+  else if (e.key === 'Escape') closeModal('pinModal');
+});
+
+/* ================= ADMIN ================= */
+async function enterAdmin() {
+  showLoading('กำลังโหลดข้อมูลผู้ดูแลระบบ...');
+  try {
+    const d = await api('getAdminData', state.token);
+    applyAdminData(d);
+    $('homeView').classList.add('hidden');
+    $('adminView').classList.remove('hidden');
+    navigate('dashboard');
+    hideLoading();
+  } catch (e) {
+    if (String(e && e.message).includes('SESSION_EXPIRED')) { hideLoading(); clearSession(); openPin(); return; }
+    handleError(e);
+  }
+}
+function applyAdminData(d) {
+  state.settings = d.settings; state.cards = d.cards;
+  renderAdmin();
+}
+function renderAdmin() {
+  const s = state.settings;
+  $('sbSchool').textContent = s.schoolName || '-';
+  $('dashSchool').textContent = (s.schoolName || '-') + (s.affiliation ? ' · ' + s.affiliation : '');
+  $('sbLogo').innerHTML = s.logoUrl
+    ? `<img src="${esc(s.logoUrl)}" class="w-full h-full object-contain p-1" loading="lazy">`
+    : `<i class="fa-solid fa-graduation-cap"></i>`;
+  $('navCardCount').textContent = state.cards.length;
+  renderStats(); renderSettingsForm(); renderCardsTable();
+  if (!$('page-dashboard').classList.contains('hidden')) renderCharts();
+}
+function navigate(page) {
+  Object.keys(PAGE_TITLES).forEach(p => $('page-' + p).classList.toggle('hidden', p !== page));
+  document.querySelectorAll('.nav-item[data-page]').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+  $('pageTitle').textContent = PAGE_TITLES[page];
+  toggleSidebar(false);
+  if (page === 'dashboard') renderCharts();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function toggleSidebar(open) {
+  $('sidebar').classList.toggle('-translate-x-full', !open);
+  $('sidebarOverlay').classList.toggle('hidden', !open);
+}
+function showHome() {
+  $('adminView').classList.add('hidden');
+  $('homeView').classList.remove('hidden');
+  renderHome();
+}
+function logout() {
+  Swal.fire({
+    icon: 'question', title: 'ออกจากระบบ?', text: 'คุณต้องการออกจากระบบผู้ดูแลใช่หรือไม่',
+    showCancelButton: true, confirmButtonText: 'ออกจากระบบ', cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#EF5350', cancelButtonColor: '#94a3b8', reverseButtons: true
+  }).then(async r => {
+    if (!r.isConfirmed) return;
+    showLoading('กำลังออกจากระบบ...');
+    try { await api('logout', state.token); } catch (e) {}
+    clearSession(); hideLoading(); showHome();
+    Toast.fire({ icon: 'success', title: 'ออกจากระบบเรียบร้อย' });
+  });
+}
+
+/* ---------- Dashboard ---------- */
+function renderStats() {
+  const c = state.cards;
+  const clicks = c.reduce((a, b) => a + b.clicks, 0);
+  const withImg = c.filter(x => x.imageUrl).length;
+  const items = [
+    { label: 'card ทั้งหมด', value: c.length, icon: 'fa-table-cells-large', color: '#0C7C82' },
+    { label: 'คลิกรวม', value: clicks.toLocaleString('th-TH'), icon: 'fa-arrow-pointer', color: '#0288D1' },
+    { label: 'มีรูปภาพ', value: `${withImg}/${c.length}`, icon: 'fa-image', color: '#F57C00' },
+    { label: 'คอลัมน์หน้าแรก', value: state.settings.columns, icon: 'fa-table-columns', color: '#4A2C6D' }
+  ];
+  $('statGrid').innerHTML = items.map((it, i) => `
+    <div class="card-panel flex items-center gap-4 fade-up" style="animation-delay:${i * 60}ms">
+      <div class="w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center text-lg" style="background:${it.color}1A;color:${it.color}">
+        <i class="fa-solid ${it.icon}"></i>
+      </div>
+      <div class="min-w-0"><p class="text-xs text-slate-500 truncate">${it.label}</p><p class="text-2xl font-bold text-slate-800">${it.value}</p></div>
+    </div>`).join('');
+}
+function renderCharts() {
+  if (!window.Chart) return;
+  const c = state.cards;
+  state.charts.bar && state.charts.bar.destroy();
+  state.charts.pie && state.charts.pie.destroy();
+  state.charts.bar = new Chart($('clickChart'), {
+    type: 'bar',
+    data: { labels: c.map(x => x.name), datasets: [{ label: 'จำนวนคลิก', data: c.map(x => x.clicks),
+      backgroundColor: c.map((_, i) => PALETTE[i % PALETTE.length] + 'CC'), borderRadius: 10, maxBarThickness: 44 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } }
+  });
+  const withImg = c.filter(x => x.imageUrl).length;
+  state.charts.pie = new Chart($('imgChart'), {
+    type: 'doughnut',
+    data: { labels: ['มีรูปภาพ', 'ไม่มีรูปภาพ'], datasets: [{ data: [withImg, c.length - withImg],
+      backgroundColor: ['#35B4B0', '#FFCA28'], borderWidth: 0, hoverOffset: 8 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom' } } }
+  });
+}
+
+/* ---------- Settings ---------- */
+function renderSettingsForm() {
+  const s = state.settings;
+  $('setSchool').value = s.schoolName || '';
+  $('setAff').value = s.affiliation || '';
+  state.colSel = Number(s.columns) || 4;
+  state.fitSel = s.imageFit === 'contain' ? 'contain' : 'cover';
+  state.pending.logo = null; state.pending.bg = null;
+  state.remove = { logo: false, bg: false };
+  renderColButtons();
+  renderFitButtons();
+  setPreview('logo', s.logoUrl, s.logoUrl ? 'current' : 'none');
+  setPreview('bg', s.bgUrl, s.bgUrl ? 'current' : 'none');
+}
+function renderColButtons() {
+  $('colButtons').innerHTML = [2,3,4,5,6,7,8].map(n =>
+    `<button type="button" onclick="selectCols(${n})" class="col-btn ${n === state.colSel ? 'active' : ''}">${n}</button>`).join('');
+  const p = $('colPreview');
+  p.style.gridTemplateColumns = `repeat(${state.colSel},minmax(0,1fr))`;
+  p.innerHTML = Array.from({ length: state.colSel * 2 }).map((_, i) =>
+    `<div class="rounded-md" style="aspect-ratio:16/10;background:${PALETTE[i % PALETTE.length]}55"></div>`).join('');
+}
+function selectCols(n) { state.colSel = n; renderColButtons(); }
+function renderFitButtons() {
+  $('fitButtons').innerHTML = FIT_OPTIONS.map(o => `
+    <button type="button" onclick="selectFit('${o.v}')" class="fit-opt ${state.fitSel === o.v ? 'active' : ''}">
+      <span class="fit-ic"><i class="fa-solid ${o.i}"></i></span>
+      <span><span class="block font-semibold text-slate-800 text-sm">${o.t}</span>
+      <span class="block text-xs text-slate-500">${o.d}</span></span>
+    </button>`).join('');
+}
+function selectFit(v) { state.fitSel = v; renderFitButtons(); }
+function setPreview(kind, url, status) {
+  const box = $(kind + 'Preview');
+  box.innerHTML = url
+    ? `<img src="${esc(url)}" class="w-full h-full ${kind === 'logo' ? 'object-contain p-2' : 'object-cover'} lazy-img" onload="this.classList.add('loaded')">`
+    : `<div class="w-full h-full flex flex-col items-center justify-center gap-1 text-slate-400 bg-slate-50"><i class="fa-regular fa-image text-3xl"></i><span class="text-xs">ไม่มีรูปภาพ</span></div>`;
+  setBadge($(kind + 'Badge'), status);
+}
+function removeImage(kind) {
+  if (kind === 'card') {
+    state.pending.card = null; state.removeCardImage = true; renderCardPreview(); return;
+  }
+  state.pending[kind] = null;
+  const cur = kind === 'logo' ? state.settings.logoUrl : state.settings.bgUrl;
+  state.remove[kind] = !!cur;
+  setPreview(kind, '', cur ? 'remove' : 'none');
+}
+const pack = p => p ? { data: p.data, mimeType: p.mimeType, name: p.name } : null;
+
+async function saveSettings() {
+  const schoolName = $('setSchool').value.trim();
+  if (!schoolName) return warn('กรุณากรอกชื่อโรงเรียน');
+  const payload = {
+    schoolName, affiliation: $('setAff').value.trim(), columns: state.colSel,
+    imageFit: state.fitSel || 'cover',
+    logo: pack(state.pending.logo), bg: pack(state.pending.bg),
+    removeLogo: state.remove.logo, removeBg: state.remove.bg
+  };
+  showLoading('กำลังบันทึกการตั้งค่า...');
+  try {
+    const d = await api('saveSettings', state.token, payload);
+    applyAdminData(d); hideLoading();
+    Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', text: 'อัปเดตการตั้งค่าระบบเรียบร้อยแล้ว', timer: 1800, showConfirmButton: false });
+  } catch (e) { handleError(e); }
+}
+async function changePin() {
+  const o = $('pinOld').value.trim(), n = $('pinNew').value.trim(), c = $('pinConfirm').value.trim();
+  if (!/^\d{4}$/.test(o)) return warn('กรุณากรอก PIN เดิมให้เป็นตัวเลข 4 หลัก');
+  if (!/^\d{4}$/.test(n)) return warn('PIN ใหม่ต้องเป็นตัวเลข 4 หลัก');
+  if (n !== c) return warn('การยืนยัน PIN ใหม่ไม่ตรงกัน');
+  showLoading('กำลังอัปเดต PIN...');
+  try {
+    await api('changePin', state.token, o, n);
+    hideLoading();
+    ['pinOld','pinNew','pinConfirm'].forEach(id => $(id).value = '');
+    Swal.fire({ icon: 'success', title: 'เปลี่ยน PIN สำเร็จ', text: 'ใช้ PIN ใหม่ในการเข้าสู่ระบบครั้งถัดไป', confirmButtonColor: '#0C7C82', confirmButtonText: 'ตกลง' });
+  } catch (e) { handleError(e); }
+}
+
+/* ---------- Image upload (compress + preview) ---------- */
+function compressImage(file, maxW, kind) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+        const ctx = cv.getContext('2d');
+        const mime = (file.type === 'image/png' && kind !== 'bg') ? 'image/png' : 'image/jpeg';
+        if (mime === 'image/jpeg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); }
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = cv.toDataURL(mime, 0.85);
+        resolve({ dataUrl, data: dataUrl.split(',')[1], mimeType: mime, name: file.name });
+      };
+      img.onerror = () => reject(new Error('ไม่สามารถอ่านไฟล์รูปภาพได้'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('อ่านไฟล์ไม่สำเร็จ'));
+    reader.readAsDataURL(file);
+  });
+}
+function onPickImage(input, kind) { const f = input.files[0]; input.value = ''; if (f) handleImageFile(f, kind); }
+async function handleImageFile(file, kind) {
+  if (!file.type.startsWith('image/')) return warn('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+  if (file.size > 15 * 1024 * 1024) return warn('ไฟล์มีขนาดใหญ่เกิน 15 MB');
+  showLoading('กำลังเตรียมรูปภาพ...');
+  try {
+    const maxW = kind === 'logo' ? 600 : kind === 'bg' ? 1920 : 1000;
+    const r = await compressImage(file, maxW, kind);
+    state.pending[kind] = r;
+    if (kind === 'card') { state.removeCardImage = false; renderCardPreview(); }
+    else { state.remove[kind] = false; setPreview(kind, r.dataUrl, 'new'); }
+    hideLoading();
+  } catch (e) { handleError(e); }
+}
+function initDropzones() {
+  document.querySelectorAll('[data-drop]').forEach(z => {
+    z.addEventListener('dragover', e => { e.preventDefault(); z.classList.add('drag'); });
+    z.addEventListener('dragleave', () => z.classList.remove('drag'));
+    z.addEventListener('drop', e => {
+      e.preventDefault(); z.classList.remove('drag');
+      const f = e.dataTransfer.files[0]; if (f) handleImageFile(f, z.dataset.drop);
+    });
+  });
+}
+
+/* ---------- Cards CRUD ---------- */
+function renderCardsTable() {
+  const q = ($('cardSearch').value || '').trim().toLowerCase();
+  const list = state.cards.filter(c => !q || c.name.toLowerCase().includes(q) || c.url.toLowerCase().includes(q));
+  if (!list.length) {
+    $('cardTableBody').innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400">
+      <i class="fa-regular fa-folder-open text-3xl"></i><p class="mt-2">ไม่พบข้อมูล card</p></td></tr>`;
+    return;
+  }
+  $('cardTableBody').innerHTML = list.map((c, i) => `
+    <tr class="hover:bg-slate-50/70 transition">
+      <td class="py-3 pr-3"><span class="badge bg-primary-50 text-primary">#${c.order}</span></td>
+      <td class="py-3 pr-3">
+        <div class="relative w-28 rounded-lg overflow-hidden border border-slate-100" style="aspect-ratio:16/10">
+          ${c.imageUrl
+            ? `<img src="${esc(c.imageUrl)}" loading="lazy" class="absolute inset-0 w-full h-full object-cover">`
+            : `<div class="absolute inset-0" style="background:linear-gradient(135deg,${GRADIENTS[i % GRADIENTS.length].join(',')})"></div>`}
+          <div class="absolute inset-x-0 bottom-0 px-1.5 pt-3 pb-1 text-[9px] font-semibold text-white truncate"
+               style="background:linear-gradient(to top,rgba(15,23,42,.8),transparent)">${esc(c.name)}</div>
+        </div>
+      </td>
+      <td class="py-3 pr-3"><p class="font-semibold text-slate-800">${esc(c.name)}</p><p class="text-[11px] text-slate-400">ID: ${esc(c.id)}</p></td>
+      <td class="py-3 pr-3"><a href="${esc(c.url)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 max-w-[240px] text-sky2 hover:underline">
+        <span class="truncate">${esc(c.url)}</span><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a></td>
+      <td class="py-3 pr-3 text-center"><span class="badge bg-sky2/10 text-sky2"><i class="fa-solid fa-arrow-pointer"></i> ${c.clicks.toLocaleString('th-TH')}</span></td>
+      <td class="py-3 pr-3">${c.imageUrl
+        ? `<span class="badge bg-emerald-50 text-emerald-600"><i class="fa-solid fa-image"></i> มีรูปภาพ</span>`
+        : `<span class="badge bg-amber-50 text-orange2"><i class="fa-solid fa-palette"></i> พื้นไล่สี</span>`}</td>
+      <td class="py-3 text-right whitespace-nowrap">
+        <button onclick="openCardModal('${esc(c.id)}')" class="icon-btn bg-amber2/15 text-orange2 hover:bg-amber2/30" title="แก้ไข"><i class="fa-solid fa-pen"></i></button>
+        <button onclick="deleteCard('${esc(c.id)}')" class="icon-btn bg-rose-50 text-crimson hover:bg-rose-100 ml-1" title="ลบ"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+function openCardModal(id) {
+  const c = id ? state.cards.find(x => x.id === id) : null;
+  $('cardModalTitle').textContent = c ? 'แก้ไข card' : 'เพิ่ม card ใหม่';
+  $('cardModalIcon').className = c ? 'fa-solid fa-pen' : 'fa-solid fa-plus';
+  $('cardId').value = c ? c.id : '';
+  $('cardOrder').value = c ? c.order : (state.cards.reduce((m, x) => Math.max(m, x.order), 0) + 1);
+  $('cardName').value = c ? c.name : '';
+  $('cardUrl').value = c ? c.url : '';
+  state.editingImage = c ? c.imageUrl : '';
+  state.pending.card = null; state.removeCardImage = false;
+  renderCardPreview();
+  openModal('cardModal');
+  setTimeout(() => $('cardName').focus(), 200);
+}
+function renderCardPreview() {
+  const name = $('cardName').value.trim() || 'ชื่อระบบ';
+  let url = '', status = 'none';
+  if (state.pending.card) { url = state.pending.card.dataUrl; status = 'new'; }
+  else if (state.editingImage && state.removeCardImage) status = 'remove';
+  else if (state.editingImage) { url = state.editingImage; status = 'current'; }
+  const fit = fitOf();
+  const box = $('cardPreview');
+  box.className = 'preview-card fit-' + fit;
+  box.innerHTML = cardInner(name, url, 0, false, fit);
+  setBadge($('cardImgBadge'), status);
+}
+async function saveCard(e) {
+  e.preventDefault();
+  const name = $('cardName').value.trim(), url = $('cardUrl').value.trim(), order = Number($('cardOrder').value);
+  if (!name) return warn('กรุณากรอกชื่อระบบ');
+  if (!/^https?:\/\//i.test(url)) return warn('ลิงก์ URL ต้องขึ้นต้นด้วย http:// หรือ https://');
+  if (!order || order < 1) return warn('กรุณากรอกลำดับการแสดงผลให้ถูกต้อง');
+  const id = $('cardId').value;
+  const payload = { id, order, name, url, image: pack(state.pending.card), removeImage: state.removeCardImage };
+  showLoading(id ? 'กำลังบันทึกการแก้ไข...' : 'กำลังเพิ่ม card...');
+  try {
+    const d = await api('saveCard', state.token, payload);
+    applyAdminData(d); closeModal('cardModal'); hideLoading();
+    Swal.fire({ icon: 'success', title: id ? 'แก้ไขสำเร็จ' : 'เพิ่ม card สำเร็จ', timer: 1600, showConfirmButton: false });
+  } catch (err) { handleError(err); }
+}
+function deleteCard(id) {
+  const c = state.cards.find(x => x.id === id); if (!c) return;
+  Swal.fire({
+    icon: 'warning', title: 'ยืนยันการลบ?',
+    html: `ต้องการลบ card <b>${esc(c.name)}</b> ใช่หรือไม่<br><span class="text-sm text-slate-500">รูปภาพที่เกี่ยวข้องจะถูกลบด้วย</span>`,
+    showCancelButton: true, confirmButtonText: 'ลบข้อมูล', cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#EF5350', cancelButtonColor: '#94a3b8', reverseButtons: true
+  }).then(async r => {
+    if (!r.isConfirmed) return;
+    showLoading('กำลังลบข้อมูล...');
+    try {
+      const d = await api('deleteCard', state.token, id);
+      applyAdminData(d); hideLoading();
+      Toast.fire({ icon: 'success', title: 'ลบ card เรียบร้อย' });
+    } catch (e) { handleError(e); }
+  });
+}
+</script>
+
+<!-- ============ IN-APP VIEWER ============ -->
+<div id="appViewer">
+  <div class="av-bar">
+    <button class="av-btn" onclick="closeViewer()" aria-label="ย้อนกลับ"><i class="fa-solid fa-arrow-left"></i></button>
+    <div id="avTitle"></div>
+    <button class="av-btn" onclick="viewerExternal()" aria-label="เปิดนอกแอป" title="เปิดนอกแอป"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>
+  </div>
+  <div class="av-body">
+    <div id="avLoading"><div class="spinner"></div></div>
+    <iframe id="avFrame" allow="clipboard-write; fullscreen; camera; microphone; geolocation" referrerpolicy="no-referrer-when-downgrade"></iframe>
+  </div>
+</div>
+</body>
+</html>
