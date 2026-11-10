@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>ระบบวิชาการดิจิทัล</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0C7C82">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="วิชาการดิจิทัล">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+  html,body{margin:0;height:100%;background:#EAF9EE;overflow:hidden;font-family:'Sarabun',system-ui,sans-serif;}
+  #app{position:fixed;inset:0;width:100%;height:100%;border:0;background:#fff;}
+  #splash{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6rem;background:radial-gradient(120% 90% at 20% 10%,#fff 0%,#EAF9EE 50%,#CDEFD6 100%);transition:opacity .6s,visibility .6s,transform .6s;}
+  #splash.hide{opacity:0;visibility:hidden;pointer-events:none;transform:scale(1.04);}
+  .ring{position:relative;width:12rem;height:12rem;display:flex;align-items:center;justify-content:center;}
+  .ring::before{content:"";position:absolute;inset:0;border-radius:999px;background:conic-gradient(from 0deg,rgba(255,255,255,0) 90deg,#1FA45A 360deg);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#000 calc(100% - 4px));mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#000 calc(100% - 4px));animation:spin 1.3s linear infinite;}
+  .ring::after{content:"";position:absolute;inset:-14px;border-radius:999px;border:1.5px solid rgba(31,164,90,.35);animation:pulse 2.2s ease-out infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes pulse{0%{transform:scale(.88);opacity:.9}100%{transform:scale(1.22);opacity:0}}
+  .logo{width:10rem;height:10rem;border-radius:999px;background:#fff;box-shadow:0 14px 36px rgba(31,120,70,.22),0 0 0 6px rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;}
+  .logo img{width:72%;height:72%;border-radius:22%;box-shadow:0 4px 14px rgba(0,0,0,.2);}
+  #txt{color:#17804A;font-weight:700;font-size:1.05rem;letter-spacing:.04em;}
+  .dots::after{content:"";animation:dots 1.4s steps(4,end) infinite;}
+  @keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%,100%{content:"..."}}
+  .bar{width:11rem;height:5px;border-radius:99px;background:rgba(31,164,90,.18);overflow:hidden;}
+  .bar::after{content:"";display:block;height:100%;width:40%;border-radius:99px;background:linear-gradient(90deg,#6FD39A,#1FA45A);animation:bar 1.4s ease-in-out infinite;}
+  @keyframes bar{0%{transform:translateX(-110%)}100%{transform:translateX(280%)}}
+  #offline{display:none;color:#17804A;text-align:center;font-weight:600;}
+  #offline button{margin-top:.6rem;padding:.55rem 1.4rem;border:0;border-radius:99px;background:#1FA45A;color:#fff;font:inherit;font-weight:700;}
+  .off .ring::before,.off .ring::after,.off .bar,.off #txt{display:none;}
+  .off #offline{display:block;}
+</style>
+</head>
+<body>
+<div id="splash" role="status">
+  <div class="ring"><div class="logo"><img src="icons/icon-192.png" alt="ระบบวิชาการดิจิทัล"></div></div>
+  <div id="txt">กำลังโหลด<span class="dots"></span></div>
+  <div class="bar"></div>
+  <div id="offline">ไม่มีการเชื่อมต่ออินเทอร์เน็ต<br><button onclick="location.reload()">ลองใหม่</button></div>
+</div>
+<iframe id="app" title="ระบบวิชาการดิจิทัล" allow="clipboard-write; fullscreen" referrerpolicy="no-referrer-when-downgrade"></iframe>
+<script>
+  var APP_URL = 'https://script.google.com/macros/s/AKfycbyIl17atLsYKsry1TmSFx-ySuXePX9Xn3MKuPkrb5lf2-TtoTG4TM-JqlH5OCFd-0_gpQ/exec';
+  var sp = document.getElementById('splash'), fr = document.getElementById('app'), t0 = Date.now(), done = false;
+  function hide(){ if(done) return; done = true; setTimeout(function(){ sp.classList.add('hide'); }, Math.max(0, 900-(Date.now()-t0))); }
+  function load(){
+    if (!navigator.onLine) { sp.classList.add('off'); return; }
+    sp.classList.remove('off'); fr.src = APP_URL;
+  }
+  fr.addEventListener('load', hide);
+  setTimeout(hide, 15000);
+  window.addEventListener('online', function(){ if(!fr.src) { done=false; t0=Date.now(); sp.classList.remove('hide'); load(); } });
+  load();
+  if ('serviceWorker' in navigator) window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+</script>
+</body>
+</html>
