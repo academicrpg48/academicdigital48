@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ระบบวิชาการดิจิทัล</title>
+<meta name="theme-color" content="#0C7C82">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="วิชาการดิจิทัล">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+  html,body{margin:0;height:100%;background:#F4FBF7;overflow:hidden;overscroll-behavior:none;font-family:sans-serif}
+  #app{position:fixed;inset:0;width:100%;height:100%;border:0;background:#F4FBF7}
+  #load{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#F4FBF7;transition:opacity .4s}
+  #load.hide{opacity:0;pointer-events:none}
+  #load i{width:44px;height:44px;border-radius:50%;border:4px solid #CDEDEC;border-top-color:#0C7C82;animation:s .8s linear infinite}
+  @keyframes s{to{transform:rotate(360deg)}}
+  #off{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:#F4FBF7;color:#334155;text-align:center;padding:24px}
+  #off button{padding:10px 22px;border:0;border-radius:12px;background:#0C7C82;color:#fff;font-size:16px}
+</style>
+</head>
+<body>
+<!-- ใส่ลิงก์ /exec ของเว็บแอป Apps Script ที่ Deploy แล้วที่นี่ -->
+<iframe id="app" title="ระบบวิชาการดิจิทัล"
+  src="https://script.google.com/macros/s/AKfycbxH8jq21aqFMOYnaHCyn567mJQWOqzRfnLz407uIBMCOqVFu6q5ZbP9HUr4brMvw8uYIA/exec"
+  allow="fullscreen; clipboard-write" referrerpolicy="no-referrer-when-downgrade"></iframe>
+<div id="load"><i></i></div>
+<div id="off"><div style="font-size:18px;font-weight:700">ไม่มีการเชื่อมต่ออินเทอร์เน็ต</div><div>กรุณาตรวจสอบเครือข่ายแล้วลองใหม่</div><button onclick="location.reload()">ลองใหม่</button></div>
+<script>
+  const f = document.getElementById('app'), l = document.getElementById('load'), o = document.getElementById('off');
+  f.addEventListener('load', () => l.classList.add('hide'));
+  setTimeout(() => l.classList.add('hide'), 8000);
+  function net(){ o.style.display = navigator.onLine ? 'none' : 'flex'; }
+  addEventListener('online', net); addEventListener('offline', net); net();
+  if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+</script>
+</body>
+</html>
